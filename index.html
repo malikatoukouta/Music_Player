@@ -10,6 +10,11 @@
 </head>
 <body>
     <div class="music-player">
+        <div class="cover">
+            <img id="cover-img" alt="" hidden>
+            <i class="fa-solid fa-music cover-placeholder" id="cover-placeholder"></i>
+        </div>
+
         <h2 id="current-track-title" class="track-title">Love is show</h2>
 
         <audio src="assets/Love is show.mp3"></audio>
@@ -21,11 +26,16 @@
         </div>
 
         <div class="main-controls">
+            <i class="fa-solid fa-shuffle mode-button" id="shuffle-button" title="Lecture aléatoire"></i>
             <i class="fa-solid fa-backward" id="prev-button" title="Précédent"></i>
             <i class="fa-solid fa-play" id="play-button" title="Lecture"></i>
             <i class="fa-solid fa-pause" id="pause-button" title="Pause"></i>
             <i class="fa-solid fa-stop" id="stop-button" title="Stop"></i>
             <i class="fa-solid fa-forward" id="next-button" title="Suivant"></i>
+            <span class="repeat-wrap">
+                <i class="fa-solid fa-repeat mode-button" id="repeat-button" title="Répéter"></i>
+                <span class="repeat-one-badge" id="repeat-one-badge" hidden>1</span>
+            </span>
         </div>
 
         <div class="volume-control">
@@ -35,6 +45,10 @@
         </div>
 
         <ul id="playlist" class="playlist"></ul>
+
+        <p class="shortcuts-hint">
+            Espace : lecture/pause · ← → : piste · ↑ ↓ : volume
+        </p>
     </div>
 </body>
 </html>
