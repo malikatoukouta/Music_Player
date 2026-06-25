@@ -1,6 +1,67 @@
 #pause-button, #stop-button {
     display: none;
 }
+
+/* Track Title */
+.track-title {
+    margin: 0 0 15px;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Main Controls Layout */
+.main-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+}
+
+/* Volume Control Layout */
+.volume-control {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 5px;
+}
+
+.volume-control i {
+    font-size: 18px;
+    margin: 0;
+}
+
+/* Playlist */
+.playlist {
+    list-style: none;
+    padding: 0;
+    margin: 20px 0 0;
+    text-align: left;
+}
+
+.playlist li {
+    padding: 10px 14px;
+    margin: 6px 0;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.12);
+    cursor: pointer;
+    transition: background 0.25s, transform 0.2s;
+    font-size: 15px;
+}
+
+.playlist li:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: translateX(4px);
+}
+
+.playlist li.active {
+    background: rgba(255, 255, 255, 0.9);
+    color: #ff4e50;
+    font-weight: 700;
+}
 /* Global Styles */
 body {
     font-family: 'Arial', sans-serif;
@@ -40,7 +101,8 @@ body {
 
 /* Progress Bar (Track) */
 input[type="range"] {
-    --webkit-appearance: none;
+    -webkit-appearance: none;
+    appearance: none;
     width: 100%;
     margin: 20px 0;
     background-color: #ddd;
@@ -52,7 +114,7 @@ input[type="range"] {
 }
 
 input[type="range"]::-webkit-slider-thumb {
-    --webkit-appearance: none;
+    -webkit-appearance: none;
     appearance: none;
     width: 18px;
     height: 18px;
