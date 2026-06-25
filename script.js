@@ -6,71 +6,12 @@ const trackTime = document.querySelector("#track-time");
 const playButton = document.querySelector("#play-button");
 const pauseButton = document.querySelector("#pause-button");
 const stopButton = document.querySelector("#stop-button");
+const prevButton = document.querySelector("#prev-button");
+const nextButton = document.querySelector("#next-button");
 const volume = document.querySelector("#volume");
 const volumeValue = document.querySelector("#volume-value");
-
-// Gestion du bouton play
-playButton.addEventListener("click", function(){
-    audio.play();
-    pauseButton.style.display = "initial";
-    stopButton.style.display = "initial";
-    this.style.display = "none";
-});
-
-// Gestion du bouton pause
-pauseButton.addEventListener("click", function(){
-    audio.pause();
-    playButton.style.display = "initial";
-    this.style.display = "none";
-});
-
-// Gestion du bouton stop
-stopButton.addEventListener("click", function(){
-    audio.pause();
-    audio.currentTime = 0;
-    playButton.style.display = "initial";
-    pauseButton.style.display = "none";
-    this.style.display = "none";
-});
-
-// Fonction pour formater la durée
-function buildDuration(duration) {
-    let minutes = Math.floor(duration / 60);
-    let secondes = Math.floor(duration % 60);
-    secondes = String(secondes).padStart(2, "0");
-    return minutes + ":" + secondes;
-}
-
-// Met à jour l'UI avec la durée lorsque les métadonnées sont chargées
-audio.addEventListener("loadedmetadata", function() {
-    let duration = audio.duration;
-    track.max = Math.floor(duration); // Met à jour la valeur max du slider de la piste
-    trackTime.textContent = buildDuration(duration);
-});
-
-// Met à jour le temps écoulé pendant la lecture
-audio.addEventListener("timeupdate", function(){
-    track.value = this.currentTime;
-    elapsed.textContent = buildDuration(this.currentTime);
-});
-
-
-// Stop (Remet à 0 et met en pause)
-stopButton.addEventListener("click", function() {
-    elapsed.textContent = "0:00";
-    track.value = 0;
-});
-
-// Contrôle du volume
-volume.addEventListener("input", function() {
-    audio.volume = volume.value;
-    volumeValue.textContent = Math.floor(volume.value * 100) + "%";
-});
-
-// Permet de naviguer dans la piste audio en utilisant le slider
-track.addEventListener("input", function() {
-    audio.currentTime = track.value;
-});
+const currentTrackTitle = document.querySelector("#current-track-title");
+const playlistEl = document.querySelector("#playlist");
 
 // Tableau des pistes audio et des titres
 const tracks = [
@@ -81,10 +22,49 @@ const tracks = [
 
 let currentTrackIndex = 0; // Index de la piste actuelle
 
-// Sélection des nouveaux boutons et de l'affichage du titre
-const prevButton = document.querySelector("#prev-button");
-const nextButton = document.querySelector("#next-button");
-const currentTrackTitle = document.querySelector("#current-track-title");
+// Fonction pour formater la durée (gère les valeurs invalides)
+function buildDuration(duration) {
+    if (!isFinite(duration)) {
+        return "0:00";
+    }
+    let minutes = Math.floor(duration / 60);
+    let secondes = Math.floor(duration % 60);
+    secondes = String(secondes).padStart(2, "0");
+    return minutes + ":" + secondes;
+}
+
+// Met à jour l'état visuel des boutons play / pause
+function setPlayingUI(isPlaying) {
+    playButton.style.display = isPlaying ? "none" : "initial";
+    pauseButton.style.display = isPlaying ? "initial" : "none";
+    stopButton.style.display = isPlaying ? "initial" : "none";
+}
+
+// Met en surbrillance la piste active dans la playlist
+function highlightActiveTrack() {
+    const items = playlistEl.querySelectorAll("li");
+    items.forEach((item, i) => {
+        item.classList.toggle("active", i === currentTrackIndex);
+    });
+}
+
+// Construit la playlist cliquable
+function renderPlaylist() {
+    playlistEl.innerHTML = "";
+    tracks.forEach((t, i) => {
+        const li = document.createElement("li");
+        li.textContent = t.title;
+        li.addEventListener("click", () => {
+            const wasPlaying = !audio.paused;
+            loadTrack(i);
+            if (wasPlaying || i !== currentTrackIndex) {
+                audio.play();
+            }
+        });
+        playlistEl.appendChild(li);
+    });
+    highlightActiveTrack();
+}
 
 // Fonction pour changer de piste
 function loadTrack(index) {
@@ -92,28 +72,80 @@ function loadTrack(index) {
     audio.src = tracks[index].src;
     currentTrackTitle.textContent = tracks[index].title;
     audio.load(); // Recharge l'audio avec la nouvelle piste
-    playButton.style.display = "initial";
-    pauseButton.style.display = "none";
-    stopButton.style.display = "none";
+    setPlayingUI(false);
+    elapsed.textContent = "0:00";
+    track.value = 0;
+    highlightActiveTrack();
 }
 
-// Écouteurs pour les boutons précédent et suivant
-prevButton.addEventListener("click", function() {
-    if (currentTrackIndex > 0) {
-        loadTrack(currentTrackIndex - 1);
-    }
+// Gestion du bouton play
+playButton.addEventListener("click", function () {
+    audio.play();
 });
 
-nextButton.addEventListener("click", function() {
-    if (currentTrackIndex < tracks.length - 1) {
-        loadTrack(currentTrackIndex + 1);
-    }
+// Gestion du bouton pause
+pauseButton.addEventListener("click", function () {
+    audio.pause();
 });
 
-// Passer automatiquement à la piste suivante lorsque la piste actuelle se termine
-audio.addEventListener("ended", function() {
-    if (currentTrackIndex < tracks.length - 1) {
-        loadTrack(currentTrackIndex + 1);
-        audio.play(); // Commence automatiquement la lecture de la prochaine piste
-    }
+// Gestion du bouton stop
+stopButton.addEventListener("click", function () {
+    audio.pause();
+    audio.currentTime = 0;
+    elapsed.textContent = "0:00";
+    track.value = 0;
+    setPlayingUI(false);
 });
+
+// Synchronise l'UI avec l'état réel de l'audio
+audio.addEventListener("play", () => setPlayingUI(true));
+audio.addEventListener("pause", () => setPlayingUI(false));
+
+// Met à jour l'UI avec la durée lorsque les métadonnées sont chargées
+audio.addEventListener("loadedmetadata", function () {
+    track.max = Math.floor(audio.duration) || 0;
+    trackTime.textContent = buildDuration(audio.duration);
+});
+
+// Met à jour le temps écoulé pendant la lecture
+audio.addEventListener("timeupdate", function () {
+    track.value = this.currentTime;
+    elapsed.textContent = buildDuration(this.currentTime);
+});
+
+// Contrôle du volume
+volume.addEventListener("input", function () {
+    audio.volume = volume.value;
+    volumeValue.textContent = Math.round(volume.value * 100) + "%";
+});
+
+// Permet de naviguer dans la piste audio en utilisant le slider
+track.addEventListener("input", function () {
+    audio.currentTime = track.value;
+});
+
+// Piste précédente (boucle vers la fin)
+prevButton.addEventListener("click", function () {
+    const wasPlaying = !audio.paused;
+    const newIndex = (currentTrackIndex - 1 + tracks.length) % tracks.length;
+    loadTrack(newIndex);
+    if (wasPlaying) audio.play();
+});
+
+// Piste suivante (boucle vers le début)
+nextButton.addEventListener("click", function () {
+    const wasPlaying = !audio.paused;
+    const newIndex = (currentTrackIndex + 1) % tracks.length;
+    loadTrack(newIndex);
+    if (wasPlaying) audio.play();
+});
+
+// Passe automatiquement à la piste suivante en fin de lecture (boucle la playlist)
+audio.addEventListener("ended", function () {
+    const newIndex = (currentTrackIndex + 1) % tracks.length;
+    loadTrack(newIndex);
+    audio.play();
+});
+
+// Initialisation
+renderPlaylist();
